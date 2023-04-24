@@ -127,7 +127,10 @@ func (m *MockOIDC) Start(ln net.Listener, cfg *tls.Config) error {
 	handler := http.NewServeMux()
 	handler.Handle(pathOf(m.EndpointConfig.AuthorizationEndpoint), m.chainMiddleware(m.Authorize))
 	handler.Handle(pathOf(m.EndpointConfig.TokenEndpoint), m.chainMiddleware(m.Token))
-	handler.Handle(pathOf(m.EndpointConfig.UserinfoEndpoint), m.chainMiddleware(m.Userinfo))
+	// In order to impersonate some services, we need to support having no userinfo endpoint.
+	if m.EndpointConfig.UserinfoEndpoint != "" {
+		handler.Handle(pathOf(m.EndpointConfig.UserinfoEndpoint), m.chainMiddleware(m.Userinfo))
+	}
 	handler.Handle(pathOf(m.EndpointConfig.JWKSEndpoint), m.chainMiddleware(m.JWKS))
 	handler.Handle(pathOf(m.EndpointConfig.DiscoveryEndpoint), m.chainMiddleware(m.Discovery))
 
